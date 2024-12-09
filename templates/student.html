@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>student_page</title>
+</head>
+<body>
+    <h1>ようこそ！</h1>
+    <form method="POST">
+        <button type="submit" name="action" value="search">探す</button>
+        <button type="submit" name="action" value="trend">トレンド</button>
+        <button type="submit" name="action" value="attend">授業</button>
+        <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
+    <ul>
+        {% if lessons %}
+            {% for lesson in lessons %}
+                <li>{{lesson.subjiect}}<li>
+                <li>タイトル{{lesson.title}}</li>
+                <li>日付{{lesson.time}}</li>
+                <li>{{lesson.max_number}}人中{{lesson.students_count}}人</li>
+                {% for i in lesson.member %}
+                <li>{{i}}</li>
+                {% endfor %}
+                <button type="submit" name="lesson_id" value="{{lesson.id}}">参加</button>
+            {% endfor %}
+        {% else %}
+            <li>参加可能な授業はありません</li>
+        {% endif %}
+    </ul>
+    </form>
+</body>
+</html>

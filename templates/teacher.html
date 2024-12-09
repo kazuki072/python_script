@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>teacher_page</title>
+</head>
+<body>
+    <h1>ようこそ！</h1>
+    <form method="POST">
+        <button type="submit" name="action" value="create">作る</button>
+        <button type="submit" name="action" value="trend">トレンド</button>
+        <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
+    <ul>
+        <h2>中一数学</h2>
+        {% for subjiect_c1_math in subjiects_c1_math %}
+        <li>{{subjiect_c1_math}}</li>
+        <button type="submit" name="lesson" value="{{subjiect_c1_math}}">作る</button>
+        {% endfor %}
+    </ul>
+    </form>
+</body>
+</html>
