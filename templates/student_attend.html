@@ -11,7 +11,16 @@
         <button type="submit" name="action" value="search">探す</button>
         <button type="submit" name="action" value="trend">トレンド</button>
         <button type="submit" name="action" value="attend">授業</button>
+        <button type="submit" name="action" value="vote">投票</button>
         <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
     </form>
+    {% for lesson in lessons %}
+    <h3>{{lesson.subjiect}}</h3>
+    <h4>{{lesson.title}}</h4>
+    <li>日付   {{lesson.time}}</li>
+    <li>{{lesson.max_number}}人中{{lesson.students_count}}人</li>
+    <li>講師 {{lesson.teacher}}</li>
+    {% endfor %}
+
 </body>
 </html>

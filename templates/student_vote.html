@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>srtudent_trend</title>
+</head>
+<body>
+    <h1>投票</h1>
+    <form method="POST">
+        <button type="submit" name="action" value="search">探す</button>
+        <button type="submit" name="action" value="trend">トレンド</button>
+        <button type="submit" name="action" value="attend">授業</button>
+        <button type="submit" name="action" value="vote">投票</button>
+        <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
+
+
+
+        <h3>検索</h3>
+        <select name="grade" >
+            <option value="all">絞り込みなし</option>
+            <option value="中一">中1</option>
+            <option value="中二">中2</option>
+            <option value="中三">中3</option>
+            <option value="高一">高1</option>
+            <option value="高二">高2</option>
+            <option value="高三">高3</option>
+        </select>
+    
+        <select name="subjiect" >
+            <option value="all">絞り込みなし</option>
+            <option value="数学">数学</option>
+            <option value="理科">理科</option>
+        </select>
+    
+        <label for="topic">単元名を入力</label>
+        <input type="text" name="topic">
+        <input type="submit" name="action" value="look_for">
+
+
+
+
+        {% if data==0 %}
+        <h2>メンテナンス中</h2>
+        {% elif data %}
+        {% for grade , subjiect in data.items() %}
+            <h2>{{grade}}</h2>
+            {% for subjiect , topics in subjiect.items() %}
+                <h3>{{subjiect}}</h3>
+                {% for topic in topics %}
+                    <li>{{topic.topic}}</li>
+                    <input type="hidden" name="action" value="vote_id">
+                    <button type="submit" name="vote_id" value="{{topic.id}}">投票</button>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+        {% else %}
+            <h3>条件に合うものがありません</h3>
+        {% endif %}
+    </form>
+</body>
+</html>

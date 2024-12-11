@@ -6,12 +6,23 @@
     <title>teacher_page</title>
 </head>
 <body>
-    <h1>トレンド</h1>
+    <h1>予定のある授業</h1>
     <form method="POST">
         <button type="submit" name="action" value="create">作る</button>
         <button type="submit" name="action" value="trend">トレンド</button>
         <button type="submit" name="action" value="created">授業</button>
         <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
     </form>
-</body>
+
+    {% if created %}
+        {% for created_lesson in created %}
+            <h3>{{created_lesson.subjiect}}</h3>
+            <h4>{{created_lesson.title}}</h4>
+            <li>日時    {{created_lesson.time}}</li>
+            <li>{{created_lesson.max_number}}人中{{created_lesson.students_count}}人</li>
+        {% endfor %}
+    {% else %}
+        <h3>予定された授業はありません</h3>
+    {% endif %}
+    </body>
 </html>
