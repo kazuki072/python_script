@@ -3,6 +3,7 @@ from flask import render_template , redirect ,request,session
 from flask_login import UserMixin , LoginManager ,login_user , logout_user , login_required
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.types import PickleType
+from sqlalchemy.dialects.sqlite import JSON
 
 import os
 from datetime import datetime
@@ -30,7 +31,7 @@ class Lesson(db.Model):
     time = db.Column(db.String(20))
     max_number = db.Column(db.Integer)
     students_count=db.Column(db.Integer)
-    member = db.Column(db.PickleType , default=list)
+    member = db.Column(db.JSON)
     teacher = db.Column(db.String(20))
 
 class User(UserMixin , db.Model):
@@ -41,8 +42,6 @@ class User(UserMixin , db.Model):
 
 
 
-with app.app_context():
-    db.create_all()
 
 @app.route("/signup",methods=['GET','POST'])
 def signup():
@@ -119,9 +118,21 @@ def student():
         lesson = Lesson.query.get(lesson_id)
         if (lesson.students_count < lesson.max_number) and (username not in lesson.member):
             lesson.students_count +=1
-            lesson.member.append(username)
+            update_member=lesson.member
+            update_member.append(username)
+            lesson.member = update_member
             print(lesson.member)
-            db.session.commit()
+            try:
+                db.session.flush()
+                db.session.commit()
+                print(lesson.member)
+
+            except Exception as e:
+                print(e)
+            print(update_member)
+            lessons = Lesson.query.all()
+            for i in lessons:
+                print(i.id , i.member)
             return redirect('/student')
         elif username in lesson.member:
             print('もう参加しています')
