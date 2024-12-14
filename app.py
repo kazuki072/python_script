@@ -11,6 +11,9 @@ import os
 from datetime import datetime
 from werkzeug.security import generate_password_hash , check_password_hash
 import pytz
+import matplotlib.pyplot as plt
+import io
+import base64
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'blog.db')
@@ -18,7 +21,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.urandom(24)
 
 db=SQLAlchemy(app)
-migrate = Migrate(app , db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -139,12 +141,44 @@ def Data():
     return data
 
 
+#グラフ関連
+def create_gragh(grade,subjiect):
+    gragh_data=Subjiect.query
+    if grade!='all':
+        gragh_data = gragh_data.query.filter_by(grade=grade)
+    if subjiect!='all':
+        gragh_data = gragh_data.query.filter_by(subjiect=subjiect)
+    label=[]
+    value=[]
+    for sub in gragh_data:
+        label.append(sub.topic)
+        value.append(sub.vote)
+    print(label)
+    print(value)
+    if label:
+        plt.pie(value, startangle=90, counterclock=False,  autopct='%.1f%%', pctdistance=0.8, labels=label)
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png")
+        buf.seek(0)
+        plt.close()
+        img = base64.b64encode(buf.getvalue()).decode("utf-8")
+        buf.close()
+        return img
+    else:
+        img=0
+        return img 
+
+    
+
+
+
+
 
 @app.route('/student',methods=['POST','GET'])
 @login_required
 def student():
     username=session.get('username')
-
+    data=0
     if request.method == 'POST':
         action=request.form.get('action')
         lesson_id = request.form.get('lesson_id')
@@ -155,8 +189,11 @@ def student():
             return render_template('student.html',lessons=lessons,username=username)
         
         #トレンド関連
-        elif action=='trend':
-            return render_template('student_trend.html',)
+        elif action=='trend':            
+            grade='all'
+            subjiect='all'
+            img = create_gragh(grade,subjiect)
+            return render_template('student_trend.html',img=img)
         
         #参加している授業関連
         elif action=='attend':
@@ -183,7 +220,7 @@ def student():
             db.session.commit()
             return render_template('student_vote.html',data=data)
         
-        elif action==lesson:
+        elif action=='lesson':
             lesson_id = request.form.get('lesson_id')
             lesson = Lesson.query.get(lesson_id)
             members = lesson.member.split(',') if lesson.member else []

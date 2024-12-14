@@ -13,6 +13,14 @@
         <button type="submit" name="action" value="attend">授業</button>
         <button type="submit" name="action" value="vote">投票</button>
         <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
+
+        {% if img!=1 %}
+        <h2>トレンドグラフ</h2>
+        <img src="data:image/png;base64,{{ img }}" alt="Graph">
+        {% else %}
+        <h2>希望がありません</h2>
+        {% endif %}
+
     </form>
 </body>
 </html>
