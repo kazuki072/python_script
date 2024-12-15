@@ -1,0 +1,22 @@
+@media (max-width: 768px){
+    .footer{
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        border-top: 1px solid #ccc;
+        padding: 8px 0;
+        z-index: 1000;
+    }
+    .footer-btn{
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        background-color: black;
+        border: none;
+        font-size: 0.8rem;
+        cursor: pointer;
+        color: aliceblue;
+        height: 40px;
+    }
+}

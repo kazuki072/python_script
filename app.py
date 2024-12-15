@@ -4,14 +4,18 @@ from flask_login import UserMixin , LoginManager ,login_user , logout_user , log
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.types import PickleType
 from sqlalchemy.types import JSON
-from sqlalchemy import inspect
-from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine , delete
+from sqlalchemy.orm import sessionmaker
 from flask_migrate import Migrate
 import os
+import matplotlib
 from datetime import datetime
 from werkzeug.security import generate_password_hash , check_password_hash
 import pytz
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
+matplotlib.use('Agg')
+rcParams['font.family'] = 'Meiryo'
 import io
 import base64
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -51,6 +55,7 @@ class Lesson(db.Model):
     member = db.Column(db.String(250))
     teacher = db.Column(db.String(20))
 
+#ユーザーデータベース
 class User(UserMixin , db.Model):
     id = db.Column(db.Integer , primary_key=True)
     username = db.Column(db.String(20) , unique=True ,nullable=False)
@@ -115,11 +120,16 @@ def logout():
 def home():
     return redirect('/login')
 
-
-def Data():
-    grade=request.form.get('grade')
-    subjiect=request.form.get('subjiect')
-    topic=request.form.get('topic')
+#data作成
+def Data(number=None):
+    if number==None:
+        grade=request.form.get('grade')
+        subjiect=request.form.get('subjiect')
+        topic=request.form.get('topic')
+    else:
+        grade='all'
+        subjiect='all'
+        topic=None
 
     query=Subjiect.query
     if grade !='all':
@@ -141,22 +151,40 @@ def Data():
     return data
 
 
-#グラフ関連
+#グラフ作成
 def create_gragh(grade,subjiect):
     gragh_data=Subjiect.query
     if grade!='all':
-        gragh_data = gragh_data.query.filter_by(grade=grade)
+        gragh_data = gragh_data.filter_by(grade=grade)
     if subjiect!='all':
-        gragh_data = gragh_data.query.filter_by(subjiect=subjiect)
+        gragh_data = gragh_data.filter_by(subjiect=subjiect)
     label=[]
     value=[]
     for sub in gragh_data:
-        label.append(sub.topic)
-        value.append(sub.vote)
+        if sub.vote!=0:
+            label.append(sub.topic)
+            value.append(sub.vote)
     print(label)
     print(value)
     if label:
-        plt.pie(value, startangle=90, counterclock=False,  autopct='%.1f%%', pctdistance=0.8, labels=label)
+        sorted_data = sorted(zip(value,label),reverse=True, key=lambda x:x[0])
+        #上位3つ以外をその他にする
+        total=0
+        for _ in range(len(sorted_data)-3):
+            total+=sorted_data[3][0]
+            del sorted_data[3]
+        
+        sorted_values,sorted_labels=zip(*sorted_data)
+        sorted_values=list(sorted_values)
+        sorted_labels=list(sorted_labels)
+        sorted_labels.append('その他')
+        sorted_values.append(total)
+
+        plt.figure(figsize=(3,2))
+        plt.bar(sorted_labels,sorted_values,width=0.5)
+        plt.title('トレンドグラフ')
+        plt.xlabel('単元')
+        plt.ylabel('投票人数')
         buf = io.BytesIO()
         plt.savefig(buf, format="png")
         buf.seek(0)
@@ -178,10 +206,12 @@ def create_gragh(grade,subjiect):
 @login_required
 def student():
     username=session.get('username')
+    imformation=User.query.filter_by(username=username).first()
+    if imformation.role!='student':
+        return redirect('/login')
     data=0
     if request.method == 'POST':
         action=request.form.get('action')
-        lesson_id = request.form.get('lesson_id')
         lessons=Lesson.query.all()
 
         #探す関連
@@ -195,30 +225,11 @@ def student():
             img = create_gragh(grade,subjiect)
             return render_template('student_trend.html',img=img)
         
-        #参加している授業関連
-        elif action=='attend':
-            return render_template('student_attend.html',lessons=lessons)
-        
-        #ユーザー情報関連
-        elif action=='user_imformation':
-            return render_template('student_user_imformation.html')
-        
-        #vote関連
-        elif action=='vote':
-            data=0
-            return render_template('student_vote.html',data=data)
-        
-        elif action=='look_for':
-            data=Data()
-            return render_template('student_vote.html',data=data)
-        
-        elif action=='vote_id':
-            data=Data()
-            vote_id = request.form.get('vote_id')
-            subjiect= Subjiect.query.get(vote_id)
-            subjiect.vote += 1
-            db.session.commit()
-            return render_template('student_vote.html',data=data)
+        elif action=='検索':
+            grade = request.form.get('grade')
+            subjiect = request.form.get('subjiect')
+            img = create_gragh(grade,subjiect)
+            return render_template('student_trend.html',img=img)
         
         elif action=='lesson':
             lesson_id = request.form.get('lesson_id')
@@ -235,6 +246,39 @@ def student():
                 return redirect('/student')
             else:
                 print('満員です')
+        
+        #参加している授業関連
+        elif action=='attend':
+            lessons=Lesson.query.all()
+            return render_template('student_attend.html',lessons=lessons)
+    
+        
+        #ユーザー情報関連
+        elif action=='user_imformation':
+            return render_template('student_user_imformation.html',username=username)
+        
+        elif action=='logout':
+            return redirect('/logout')
+        
+
+        #vote関連
+        elif action=='vote':
+            data=Data(number=0)
+            return render_template('student_vote.html',data=data)
+        
+        elif action=='look_for':
+            data=Data()
+            return render_template('student_vote.html',data=data)
+        
+        elif action=='vote_id':
+            data=Data(number=0)
+            vote_id = request.form.get('vote_id')
+            subjiect= Subjiect.query.get(vote_id)
+            subjiect.vote += 1
+            db.session.commit()
+            return render_template('student_vote.html',data=data)
+        
+
     else:
         lessons=Lesson.query.all()
         return render_template('student.html',lessons=lessons,username=username)
@@ -243,26 +287,48 @@ def student():
 @login_required
 def teacher():
     username=session.get('username')
+    #roleが違ったらはじく
+    imformation=User.query.filter_by(username=username).first()
+    if imformation.role!='teacher':
+        return redirect('/login')
+    
     lessons = Lesson.query.all()
-    data=0
     if request.method == 'POST':
         action=request.form.get('action')
-
+        #授業関連
         if action=='create':
+            data=Data(number=0)
             return render_template('teacher.html',data=data)
-        
-        elif action=='trend':
-            return render_template('teacher_trend.html')
-        
-        elif action=='user_imformation':
-            return render_template('teacher_user_imformation.html')
-        
+        #授業作成
         elif action=='created':
             created=[]
             for i in lessons:
                 if i.teacher == username:
                     created.append(i)
             return render_template('teacher_created.html',created=created)
+
+        #トレンド関連
+        elif action=='trend':
+            grade='all'
+            subjiect='all'
+            img = create_gragh(grade,subjiect)
+            return render_template('teacher_trend.html',img=img)
+        #トレンド検索
+        elif action=='検索':
+            grade = request.form.get('grade')
+            subjiect = request.form.get('subjiect')
+            img = create_gragh(grade,subjiect)
+            return render_template('teacher_trend.html',img=img)
+        
+
+
+        #ユーザー情報関連
+        elif action=='user_imformation':
+            return render_template('teacher_user_imformation.html',username=username)
+        
+        elif action=='logout':
+            return redirect('/logout')
+        
         
         elif action=='lesson':
             lesson_id = request.form.get('lesson_id')
@@ -274,10 +340,11 @@ def teacher():
 
             return render_template('teacher.html',data=data)
         else:
-            
+            data=Data(number=0)
             return render_template('teacher.html',data=data)
 
     else:
+        data=Data(number=0)
         return render_template('teacher.html',data=data)
 
 
@@ -285,8 +352,18 @@ def teacher():
 @app.route("/create_lesson/<lesson>",methods=['POST','GET'])
 @login_required
 def craete_lesson(lesson):
+    username=session.get('username')
+    #roleが違ったらはじく
+    imformation=User.query.filter_by(username=username).first()
+    if imformation.role!='teacher':
+        return redirect('/login')
+    
     if request.method=='POST':
-        time=request.form.get('time')
+        date=request.form.get('date')
+        starttime=request.form.get('starttime')
+        endtime = request.form.get('endtime')
+        #日付と時間を連結
+        time=f'{date} {starttime}~{endtime}'
         people=request.form.get('people')
         title=request.form.get('title')
         username=session.get('username')
@@ -302,15 +379,27 @@ def craete_lesson(lesson):
 
 @app.route("/topics/add",methods=['POST','GET'])
 def topics():
+    number=0
+    data=Data(number)
     if request.method=='POST':
-        grade=request.form.get('grade')
-        subjiect=request.form.get('subjiect')
-        topic=request.form.get('topic').split(',') if request.form.get('topic') else []
-        if topic:
-            for i in topic:
-                add=Subjiect(grade=grade,subjiect=subjiect,topic=i)
-                db.session.add(add)
-                db.session.commit()
-        return render_template('topics_add.html')
+        re=request.form.get('action')
+        if re=='add':
+            grade=request.form.get('grade')
+            subjiect=request.form.get('subjiect')
+            topic=request.form.get('topic').split(',') if request.form.get('topic') else []
+            if topic:
+                for i in topic:
+                    add=Subjiect(grade=grade,subjiect=subjiect,topic=i)
+                    db.session.add(add)
+                    db.session.commit()
+        elif re=='delete':
+            id=request.form.get('delete')
+            del_data = Subjiect.query.filter_by(id=id).first()
+            db.session.delete(del_data)
+            db.session.commit()
+        return render_template('topics_add.html',data=data)
     else:
-        return render_template('topics_add.html')
+        return render_template('topics_add.html',data=data)
+
+if __name__=='__main__':
+    app.run(debug=True,host='0.0.0.0',port=5000)

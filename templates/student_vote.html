@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static',filename='student_vote.css')}}">
     <title>srtudent_trend</title>
 </head>
 <body>
-    <h1>投票</h1>
+    <h1>mana-bell</h1>
+    <h2>投票</h2>
     <form method="POST">
-        <button type="submit" name="action" value="search">探す</button>
-        <button type="submit" name="action" value="trend">トレンド</button>
-        <button type="submit" name="action" value="attend">授業</button>
-        <button type="submit" name="action" value="vote">投票</button>
-        <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
+        <footer class="footer">
+            <button class="footer-btn" type="submit" name="action" value="search">探す</button>
+            <button class="footer-btn" type="submit" name="action" value="trend">トレンド</button>
+            <button class="footer-btn" type="submit" name="action" value="attend">授業</button>
+            <button class="footer-btn" type="submit" name="action" value="vote">投票</button>
+            <button class="footer-btn" type="submit" name="action" value="user_imformation">ユーザー</button>
+        </footer>
 
 
 
@@ -32,10 +36,11 @@
             <option value="数学">数学</option>
             <option value="理科">理科</option>
         </select>
-    
-        <label for="topic">単元名を入力</label>
-        <input type="text" name="topic">
-        <input type="submit" name="action" value="look_for">
+        <li class="sub-search">
+        <span class="sub-search1">単元名を入力</span>
+        <input type="text" name="topic" class="sub-search2">
+        <button type="submit" name="action" value="look_for" class="sub-search3">検索</button>
+        </li>
 
 
 
@@ -48,9 +53,11 @@
             {% for subjiect , topics in subjiect.items() %}
                 <h3>{{subjiect}}</h3>
                 {% for topic in topics %}
-                    <li>{{topic.topic}}</li>
+                <li class="vote">
+                    <span class="vote-letter">{{topic.topic}}</span>
                     <input type="hidden" name="action" value="vote_id">
-                    <button type="submit" name="vote_id" value="{{topic.id}}">投票</button>
+                    <button type="submit" name="vote_id" value="{{topic.id}}" class="vote-button">投票</button>
+                </li>
                 {% endfor %}
             {% endfor %}
         {% endfor %}

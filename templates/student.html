@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static',filename='student.css')}}">
     <title>student_page</title>
 </head>
 <body>
-    <h1>ようこそ！</h1>
+    <h1>mana-bell</h1>
+    <h2>ようこそ！</h2>
     <form method="POST">
-        <button type="submit" name="action" value="search">探す</button>
-        <button type="submit" name="action" value="trend">トレンド</button>
-        <button type="submit" name="action" value="attend">授業</button>
-        <button type="submit" name="action" value="vote">投票</button>
-        <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
-
-    
-
+        <footer class="footer">
+        <button class="footer-btn" type="submit" name="action" value="search">探す</button>
+        <button class="footer-btn" type="submit" name="action" value="trend">トレンド</button>
+        <button class="footer-btn" type="submit" name="action" value="attend">授業</button>
+        <button class="footer-btn" type="submit" name="action" value="vote">投票</button>
+        <button class="footer-btn" type="submit" name="action" value="user_imformation">ユーザー</button>
+        </footer>
 
     <ul>
         {% if lessons %}
@@ -28,13 +29,15 @@
                 {% set members = lesson.member.split(',')if lesson.member else [] %}
                 {% if username in members %}
                     <li>参加済み</li>
-                {% else %}
+                {% elif lesson.max_number!=lesson.student_count %}
                     <li>
                         <form method="POST">
                             <input type="hidden" name="action" value="lesson">
                             <button type="submit" name="lesson_id" value="{{lesson.id}}">参加</button>
                         </form>
                     </li>
+                {% else %}
+                    <li>満員です</li>
                 {% endif %}
             {% endfor %}
         {% else %}

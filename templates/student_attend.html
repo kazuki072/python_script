@@ -3,24 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static',filename='student_attend.css')}}">
     <title>teacher_page</title>
 </head>
 <body>
-    <h1>参加予定の授業</h1>
+    <h1>mana-bell</h1>
+    <h2>参加予定の授業</h2>
     <form method="POST">
-        <button type="submit" name="action" value="search">探す</button>
-        <button type="submit" name="action" value="trend">トレンド</button>
-        <button type="submit" name="action" value="attend">授業</button>
-        <button type="submit" name="action" value="vote">投票</button>
-        <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
+        <footer class="footer">
+            <button class="footer-btn" type="submit" name="action" value="search">探す</button>
+            <button class="footer-btn" type="submit" name="action" value="trend">トレンド</button>
+            <button class="footer-btn" type="submit" name="action" value="attend">授業</button>
+            <button class="footer-btn" type="submit" name="action" value="vote">投票</button>
+            <button class="footer-btn" type="submit" name="action" value="user_imformation">ユーザー</button>
+        </footer>
     </form>
-    {% for lesson in lessons %}
-    <h3>{{lesson.subjiect}}</h3>
-    <h4>{{lesson.title}}</h4>
-    <li>日付   {{lesson.time}}</li>
-    <li>{{lesson.max_number}}人中{{lesson.students_count}}人</li>
-    <li>講師 {{lesson.teacher}}</li>
-    {% endfor %}
+    {% set ns = namespace(lesson_number=0)%}
+    {% if lessons %}
+        {% for lesson in lessons %}
+            {% set member = lesson.member.split(',') if lesson.member else [] %}
+            {% if username not in member %}
+                {% set ns.lesson_number = 1 %}
+                <h3>{{lesson.subjiect}}</h3>
+                <h4>{{lesson.title}}</h4>
+                <li>日付   {{lesson.time}}</li>
+                <li>{{lesson.max_number}}人中{{lesson.students_count}}人</li>
+                <li>講師 {{lesson.teacher}}</li>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if ns.lesson_number==0 %}
+    
+        <h2>参加予定の授業はありません</h2>
+    {% endif %}
 
 </body>
 </html>

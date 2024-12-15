@@ -25,7 +25,20 @@
     </select>
     <label for="topic">単元入力</label>
     <input type="text" name="topic">
-    <button type="submit" name="add" value="add">追加</button>
+    <button type="submit" name="action" value="add">追加</button>
+
+
+    {% for grade , subjiect in data.items() %}
+        <h2>{{grade}}</h2>
+        {% for subjiect , topics in subjiect.items() %}
+            <h3>{{subjiect}}</h3>
+            {% for topic in topics %}
+                <li>{{topic.topic}}</li>
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" name="delete" value="{{topic.id}}">削除</button>
+            {% endfor %}
+        {% endfor %}
+    {% endfor %}
     </form>
 </body>
 </html>

@@ -3,24 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static',filename='student_trend.css')}}">
     <title>srtudent_trend</title>
 </head>
 <body>
-    <h1>トレンド</h1>
+    <h1>mana-bell</h1>
+    <h2>トレンド</h2>
     <form method="POST">
-        <button type="submit" name="action" value="search">探す</button>
-        <button type="submit" name="action" value="trend">トレンド</button>
-        <button type="submit" name="action" value="attend">授業</button>
-        <button type="submit" name="action" value="vote">投票</button>
-        <button type="submit" name="action" value="user_imformation">ユーザー情報</button>
+        <footer class="footer">
+            <button class="footer-btn" type="submit" name="action" value="search">探す</button>
+            <button class="footer-btn" type="submit" name="action" value="trend">トレンド</button>
+            <button class="footer-btn" type="submit" name="action" value="attend">授業</button>
+            <button class="footer-btn" type="submit" name="action" value="vote">投票</button>
+            <button class="footer-btn" type="submit" name="action" value="user_imformation">ユーザー</button>
+        </footer>
+    </form>
+
+
+
+    <form method="POST">
+        <h3>条件で絞る</h3>
+        <select name="grade" >
+            <option value="all">絞り込みなし</option>
+            <option value="中一">中1</option>
+            <option value="中二">中2</option>
+            <option value="中三">中3</option>
+            <option value="高一">高1</option>
+            <option value="高二">高2</option>
+            <option value="高三">高3</option>
+        </select>
+    
+        <select name="subjiect" >
+            <option value="all">絞り込みなし</option>
+            <option value="数学">数学</option>
+            <option value="理科">理科</option>
+        </select>
+        <button type="submit" name="action" value="検索">検索</button>
+
+
+    </form>
+
 
         {% if img!=1 %}
-        <h2>トレンドグラフ</h2>
         <img src="data:image/png;base64,{{ img }}" alt="Graph">
         {% else %}
         <h2>希望がありません</h2>
         {% endif %}
 
-    </form>
 </body>
 </html>
